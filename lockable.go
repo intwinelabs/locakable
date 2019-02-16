@@ -53,7 +53,7 @@ func (l *lockable) Unlock(key string) error {
 	if err := l.client.Do(unlockScript.Cmd(&res, key, l.lockVal.String())); err != nil {
 		return err
 	} else if res != 1 {
-		return errors.New("Unlock failed, key incorrect")
+		return errors.New("Unlock failed, key incorrect or lock timedout")
 	}
 
 	// Success

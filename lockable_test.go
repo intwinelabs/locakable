@@ -1,7 +1,9 @@
 package lockable
 
 import (
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mediocregopher/radix"
@@ -24,7 +26,8 @@ func TestLockable(t *testing.T) {
 	client, _ := radix.NewPool("tcp", "127.0.0.1:6379", 10)
 	l.SetCache(client)
 
-	if isLocked, _ := l.Lock(l.Id.String(), 3000); !isLocked {
+	if isLocked, _ := l.Lock(l.Id.String(), 30); !isLocked {
+		// return with error in a function
 		assert.FailNow("failure locking")
 	}
 	defer l.Unlock(l.Id.String())
@@ -32,11 +35,17 @@ func TestLockable(t *testing.T) {
 	l.Name = "Fred"
 
 	go func() {
-		if isLocked, _ := l.Lock(l.Id.String(), 3000); !isLocked {
+		if isLocked, _ := l.Lock(l.Id.String(), 30); !isLocked {
 			return
 		}
 		l.Name = "Bob"
 	}()
 
 	assert.Equal("Fred", l.Name)
+
+	time.Sleep(30 * time.Millisecond)
+
+	err := l.Unlock(l.Id.String())
+	_err := errors.New("Unlock failed, key incorrect or lock timedout")
+	assert.Equal(_err, err)
 }

@@ -35,6 +35,7 @@ func TestLockable(t *testing.T) {
 	l.Name = "Fred"
 
 	go func() {
+		// should not be able to get the lock
 		if isLocked, _ := l.Lock(l.Id.String(), 30); !isLocked {
 			return
 		}
